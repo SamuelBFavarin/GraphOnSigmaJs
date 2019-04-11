@@ -1,0 +1,160 @@
+<meta charset="ISO-8859-1">
+
+<script src="sigma/src/sigma.core.js"></script>
+<script src="sigma/src/conrad.js"></script>
+<script src="sigma/src/utils/sigma.utils.js"></script>
+<script src="sigma/src/utils/sigma.polyfills.js"></script>
+<script src="sigma/src/sigma.settings.js"></script>
+<script src="sigma/src/classes/sigma.classes.dispatcher.js"></script>
+<script src="sigma/src/classes/sigma.classes.configurable.js"></script>
+<script src="sigma/src/classes/sigma.classes.graph.js"></script>
+<script src="sigma/src/classes/sigma.classes.camera.js"></script>
+<script src="sigma/src/classes/sigma.classes.quad.js"></script>
+<script src="sigma/src/classes/sigma.classes.edgequad.js"></script>
+<script src="sigma/src/captors/sigma.captors.mouse.js"></script>
+<script src="sigma/src/captors/sigma.captors.touch.js"></script>
+<script src="sigma/src/renderers/sigma.renderers.canvas.js"></script>
+<script src="sigma/src/renderers/sigma.renderers.webgl.js"></script>
+<script src="sigma/src/renderers/sigma.renderers.svg.js"></script>
+<script src="sigma/src/renderers/sigma.renderers.def.js"></script>
+<script src="sigma/src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+<script src="sigma/src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+<script src="sigma/src/renderers/webgl/sigma.webgl.edges.def.js"></script>
+<script src="sigma/src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+<script src="sigma/src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.labels.def.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edges.def.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
+<script src="sigma/src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
+<script src="sigma/src/renderers/svg/sigma.svg.utils.js"></script>
+<script src="sigma/src/renderers/svg/sigma.svg.nodes.def.js"></script>
+<script src="sigma/src/renderers/svg/sigma.svg.edges.def.js"></script>
+<script src="sigma/src/renderers/svg/sigma.svg.edges.curve.js"></script>
+<script src="sigma/src/renderers/svg/sigma.svg.labels.def.js"></script>
+<script src="sigma/src/renderers/svg/sigma.svg.hovers.def.js"></script>
+<script src="sigma/src/middlewares/sigma.middlewares.rescale.js"></script>
+<script src="sigma/src/middlewares/sigma.middlewares.copy.js"></script>
+<script src="sigma/src/misc/sigma.misc.animation.js"></script>
+<script src="sigma/src/misc/sigma.misc.bindEvents.js"></script>
+<script src="sigma/src/misc/sigma.misc.bindDOMEvents.js"></script>
+<script src="sigma/src/misc/sigma.misc.drawHovers.js"></script>
+
+<!-- IMPORT DATA FROM JSON -->
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="users.js"></script>
+
+<!-- FORCE -->
+<script src="sigma/plugins/sigma.layout.forceAtlas2/worker.js"></script>
+<script src="sigma/plugins/sigma.layout.forceAtlas2/supervisor.js"></script>
+
+<!-- EDIT EDGES -->
+<script src="../plugins/sigma.renderers.edgeLabels/settings.js"></script>
+<script src="../plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.def.js"></script>
+<script src="../plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.curve.js"></script>
+<script src="../plugins/sigma.renderers.edgeLabels/sigma.canvas.edges.labels.curvedArrow.js"></script>
+
+
+<!-- HTML TO DRAW GRAPH -->
+<div id="container">
+  <style>
+    #graph-container {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      position: absolute;
+    }
+  </style>
+  <div id="graph-container"></div>
+</div>
+
+<!-- SCRIPT -->
+<script  type="text/javascript">
+
+var g = {
+      nodes: [],
+      edges: []
+    };
+
+
+  var answers = data[0]['rows']
+  var users = users[0]['rows']
+
+  // Generate nodes
+  users.forEach(user => {
+
+    var node_size = 200
+
+    answers.forEach(answer => {
+      if (answer.id_employee == user.id_colaborador) {
+        node_size += answer.total_weight
+      }
+    })
+
+    if (node_size >= 750) {
+      color_rgb = "rgb(0, 51, 102)"
+    } else if (node_size < 750 && node_size >= 600) {
+      color_rgb = "rgb(0, 102, 153)"
+    } else if (node_size < 600 && node_size >= 400) {
+      color_rgb = "rgb(0, 204, 255)"
+    } else {
+      color_rgb = "rgb(204, 255, 255)"
+    }
+
+    g.nodes.push({
+      id: user.id_colaborador,
+      label: user.nome + ' (' + (node_size - 200) + ')',
+      x: Math.random(),
+      y: Math.random(),
+      size: node_size * 5,
+      color: color_rgb
+    })
+  })
+
+  // Generate answers
+  answers.forEach(answer => {
+
+    if (answer.total_weight >= 130) {
+      color_rgb = "rgb(0, 0, 0)"
+    } else if (answer.total_weight < 130 && answer.total_weight >= 110) {
+      color_rgb = "rgb(90, 90, 90)"
+    } else if (answer.total_weight < 110 && answer.total_weight >= 70) {
+      color_rgb = "rgb( 150, 150, 150)"
+    } else {
+      color_rgb = "rgb(200, 200, 200)"
+    }
+
+    g.edges.push({
+      id: Math.random(),
+      source: answer.id_valuer,
+      target: answer.id_employee,
+      size: 40,
+      color: color_rgb,
+      type: ['line', 'curve', 'arrow', 'curvedArrow'][Math.random() * 4 | 0]
+    })
+  })
+
+
+// Instantiate sigma:
+s = new sigma({
+  graph: g,
+  renderer: {
+    container: document.getElementById('graph-container'),
+    type: 'canvas'
+  },
+  settings: {
+    edgeLabelSize: 'proportional'
+  }
+});
+
+s.startForceAtlas2({worker: false, barnesHutOptimize: false});
+window.setTimeout(function() {s.killForceAtlas2()}, 10000);
+</script>
